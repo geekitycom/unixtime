@@ -5,11 +5,13 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(advancedFormat);
 dayjs.extend(customParseFormat);
+dayjs.extend(localizedFormat);
 
 const App = () => {
   const [region, setRegion] = useState(null);
@@ -67,7 +69,7 @@ const App = () => {
     localStorage.setItem('selectedCity', JSON.stringify(selectedCity));
   };
 
-  const handleShortcutClick = (shortcut) => {
+  const handleTimezoneShortcut = (shortcut) => {
     const selectedRegion = { value: shortcut.region, label: shortcut.region };
     setRegion(selectedRegion);
     localStorage.setItem('selectedRegion', JSON.stringify(selectedRegion));
@@ -85,6 +87,16 @@ const App = () => {
     const newFormat = e.target.value;
     setTextFormat(newFormat);
     localStorage.setItem('textFormat', newFormat);
+  };
+
+  const handleTextFormatShortcut = (type) => {
+    if (type === 'iso8601') {
+      setTextFormat('YYYY-MM-DDTHH:mm:ssZ');
+      localStorage.setItem('textFormat', 'YYYY-MM-DDTHH:mm:ssZ');
+    } else if (type === 'local') {
+      setTextFormat('lll');
+      localStorage.setItem('textFormat', 'lll');
+    }
   };
 
   const handleUnixtimeShortcut = (type) => {
@@ -151,7 +163,7 @@ const App = () => {
 
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Region
@@ -166,7 +178,7 @@ const App = () => {
               {timezoneShortcuts.map((shortcut) => (
                 <button
                   key={shortcut.label}
-                  onClick={() => handleShortcutClick(shortcut)}
+                  onClick={() => handleTimezoneShortcut(shortcut)}
                   className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
                 >
                   {shortcut.label}
@@ -186,17 +198,31 @@ const App = () => {
               className="w-full"
             />
           </div>
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Text Format
-          </label>
-          <input
-            type="text"
-            value={textFormat}
-            onChange={handleTextFormatChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
+          <div className="col-span-2">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Text Format
+            </label>
+            <input
+              type="text"
+              value={textFormat}
+              onChange={handleTextFormatChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            <div className="mt-2 flex space-x-2">
+              <button
+                onClick={() => handleTextFormatShortcut('iso8601')}
+                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                ISO 8601
+              </button>
+              <button
+                onClick={() => handleTextFormatShortcut('local')}
+                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                Local
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -216,13 +242,13 @@ const App = () => {
             <div className="mt-2 flex space-x-2">
               <button
                 onClick={() => handleUnixtimeShortcut('midnight')}
-                className="text-sm text-blue-500 hover:text-blue-700 focus:outline-none"
+                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 Midnight
               </button>
               <button
                 onClick={() => handleUnixtimeShortcut('now')}
-                className="text-sm text-blue-500 hover:text-blue-700 focus:outline-none"
+                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 Now
               </button>
