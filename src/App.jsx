@@ -46,24 +46,45 @@ const App = () => {
 
   const handleRegionChange = (selectedRegion) => {
     setRegion(selectedRegion);
+    localStorage.setItem('selectedRegion', JSON.stringify(selectedRegion));
     if (selectedRegion.value === 'UTC') {
       setCity(null);
+      localStorage.removeItem('selectedCity');
     } else if (selectedRegion && regions[selectedRegion.value].length > 0) {
       const uniqueCities = Array.from(new Set(regions[selectedRegion.value]));
       const firstCity = uniqueCities[0];
-      setCity({ value: firstCity, label: firstCity });
+      const newCity = { value: firstCity, label: firstCity };
+      setCity(newCity);
+      localStorage.setItem('selectedCity', JSON.stringify(newCity));
     } else {
       setCity(null);
+      localStorage.removeItem('selectedCity');
     }
   };
 
+  const handleCityChange = (selectedCity) => {
+    setCity(selectedCity);
+    localStorage.setItem('selectedCity', JSON.stringify(selectedCity));
+  };
+
   const handleShortcutClick = (shortcut) => {
-    setRegion({ value: shortcut.region, label: shortcut.region });
+    const selectedRegion = { value: shortcut.region, label: shortcut.region };
+    setRegion(selectedRegion);
+    localStorage.setItem('selectedRegion', JSON.stringify(selectedRegion));
     if (shortcut.city) {
-      setCity({ value: shortcut.city, label: shortcut.city });
+      const selectedCity = { value: shortcut.city, label: shortcut.city };
+      setCity(selectedCity);
+      localStorage.setItem('selectedCity', JSON.stringify(selectedCity));
     } else {
       setCity(null);
+      localStorage.removeItem('selectedCity');
     }
+  };
+
+  const handleTextFormatChange = (e) => {
+    const newFormat = e.target.value;
+    setTextFormat(newFormat);
+    localStorage.setItem('textFormat', newFormat);
   };
 
   const handleUnixtimeShortcut = (type) => {
@@ -88,22 +109,43 @@ const App = () => {
   };
 
   useEffect(() => {
-    const userTimezone = dayjs.tz.guess();
-    const [userRegion, userCity] = userTimezone.split('/');
+    const savedRegion = JSON.parse(localStorage.getItem('selectedRegion'));
+    const savedCity = JSON.parse(localStorage.getItem('selectedCity'));
+    const savedFormat = localStorage.getItem('textFormat');
 
-    const defaultRegion = regionOptions.find(r => r.value === userRegion);
-    setRegion(defaultRegion);
+    if (savedRegion) {
+      setRegion(savedRegion);
+    } else {
+      const userTimezone = dayjs.tz.guess();
+      const [userRegion, userCity] = userTimezone.split('/');
+      const defaultRegion = regionOptions.find(r => r.value === userRegion);
+      setRegion(defaultRegion);
+      localStorage.setItem('selectedRegion', JSON.stringify(defaultRegion));
 
-    if (defaultRegion && defaultRegion.value !== 'UTC') {
-      const defaultCity = { value: userCity, label: userCity };
-      setCity(defaultCity);
+      if (defaultRegion && defaultRegion.value !== 'UTC') {
+        const defaultCity = { value: userCity, label: userCity };
+        setCity(defaultCity);
+        localStorage.setItem('selectedCity', JSON.stringify(defaultCity));
+      }
     }
 
-    const formattedTime = dayjs.unix(unixtime).tz(userTimezone).format(textFormat);
+    if (savedCity) {
+      setCity(savedCity);
+    }
+
+    if (savedFormat) {
+      setTextFormat(savedFormat);
+    }
+
+    const currentUnixtime = Math.floor(Date.now() / 1000);
+    setUnixtime(currentUnixtime);
+
+    const tz = savedRegion && savedRegion.value === 'UTC' ? 'UTC' : savedRegion && savedCity ? `${savedRegion.value}/${savedCity.value}` : dayjs.tz.guess();
+    const formattedTime = dayjs.unix(currentUnixtime).tz(tz).format(savedFormat || textFormat);
     setTextTime(formattedTime);
   }, []);
 
-    return (
+  return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Unixtime</h1>
 
@@ -139,7 +181,7 @@ const App = () => {
             <Select
               options={cityOptions}
               value={city}
-              onChange={setCity}
+              onChange={handleCityChange}
               isDisabled={!region || region.value === 'UTC'}
               className="w-full"
             />
@@ -152,7 +194,7 @@ const App = () => {
           <input
             type="text"
             value={textFormat}
-            onChange={(e) => setTextFormat(e.target.value)}
+            onChange={handleTextFormatChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           />
         </div>
