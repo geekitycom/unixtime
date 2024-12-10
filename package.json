@@ -1,8 +1,14 @@
 {
   "name": "unixtime",
+  "homepage": "https://unixtime.geekity.com/",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "license": "MIT",
+  "author": "Andrew Shell <andrew@andrewshell.org>",
+  "bugs": {
+    "url": "https://github.com/andrewshell/unixtime/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -20,5 +26,9 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
     "vite": "^4.3.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewshell/unixtime.git"
   }
 }
