@@ -159,7 +159,10 @@ const App = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Unixtime</h1>
+      <h1 className="flex items-center space-x-2 text-3xl font-bold mb-6">
+        <img className="h-8 w-auto inline-block mr-2" src="/clock-three-svgrepo-com.svg" alt="Clock Logo" />
+        Unixtime
+      </h1>
 
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-semibold mb-4">Settings</h2>
@@ -280,6 +283,9 @@ const App = () => {
             Convert to Text Time
           </button>
         </div>
+      </div>
+      <div className="flex justify-end">
+        <a className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 block" href="https://github.com/andrewshell/unixtime">View Source</a>
       </div>
     </div>
   );

@@ -14,3 +14,7 @@ npm run dev
 ```
 npm run build
 ```
+
+## Attribution
+
+[Clock Three SVG Vector](https://www.svgrepo.com/svg/532122/clock-three)
