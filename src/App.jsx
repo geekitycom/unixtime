@@ -13,6 +13,56 @@ dayjs.extend(advancedFormat);
 dayjs.extend(customParseFormat);
 dayjs.extend(localizedFormat);
 
+const regionShortcuts = {
+  America: [
+    { label: 'PST', city: 'Los_Angeles' },
+    { label: 'MST', city: 'Denver' },
+    { label: 'CST', city: 'Chicago' },
+    { label: 'EST', city: 'New_York' },
+    { label: 'AST', city: 'Halifax' },
+    { label: 'NST', city: 'St_Johns' },
+  ],
+  Europe: [
+    { label: 'WET', city: 'London' },
+    { label: 'CET', city: 'Paris' },
+    { label: 'EET', city: 'Helsinki' },
+    { label: 'BST', city: 'Dublin' },
+    { label: 'MSK', city: 'Moscow' },
+  ],
+  Asia: [
+    { label: 'IST', city: 'Kolkata' },
+    { label: 'CST', city: 'Shanghai' },
+    { label: 'JST', city: 'Tokyo' },
+    { label: 'KST', city: 'Seoul' },
+    { label: 'PKT', city: 'Karachi' },
+    { label: 'ICT', city: 'Bangkok' },
+  ],
+  Australia: [
+    { label: 'AWST', city: 'Perth' },
+    { label: 'ACST', city: 'Darwin' },
+    { label: 'AEST', city: 'Sydney' },
+    { label: 'LHST', city: 'Lord_Howe' },
+  ],
+  Pacific: [
+    { label: 'NZST', city: 'Auckland' },
+    { label: 'HST', city: 'Honolulu' },
+    { label: 'SST', city: 'Pago_Pago' },
+    { label: 'CHST', city: 'Guam' },
+  ],
+  Africa: [
+    { label: 'WAT', city: 'Lagos' },
+    { label: 'CAT', city: 'Harare' },
+    { label: 'EAT', city: 'Nairobi' },
+    { label: 'SAST', city: 'Johannesburg' },
+  ],
+  MiddleEast: [
+    { label: 'IRST', city: 'Tehran' },
+    { label: 'GST', city: 'Dubai' },
+    { label: 'AST', city: 'Baghdad' },
+    { label: 'IDT', city: 'Jerusalem' },
+  ],
+};
+
 const App = () => {
   const [region, setRegion] = useState(null);
   const [city, setCity] = useState(null);
@@ -40,10 +90,12 @@ const App = () => {
 
   const timezoneShortcuts = [
     { label: 'UTC', region: 'UTC', city: null },
-    { label: 'PST', region: 'America', city: 'Los_Angeles' },
-    { label: 'MST', region: 'America', city: 'Denver' },
-    { label: 'CST', region: 'America', city: 'Chicago' },
-    { label: 'EST', region: 'America', city: 'New_York' },
+    ...(region && region.value !== 'UTC' && regionShortcuts[region.value]
+      ? regionShortcuts[region.value].map(shortcut => ({
+          ...shortcut,
+          region: region.value,
+        }))
+      : []),
   ];
 
   const handleRegionChange = (selectedRegion) => {
@@ -100,7 +152,8 @@ const App = () => {
   };
 
   const handleUnixtimeShortcut = (type) => {
-    const now = dayjs();
+    const tz = region.value === 'UTC' ? 'UTC' : `${region.value}/${city.value}`;
+    const now = dayjs().tz(tz);
     if (type === 'midnight') {
       setUnixtime(now.startOf('day').unix());
     } else if (type === 'now') {
@@ -157,75 +210,104 @@ const App = () => {
     setTextTime(formattedTime);
   }, []);
 
+  function RegionBlock() {
+    return (
+      <div>
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Region
+        </label>
+        <Select
+          options={regionOptions}
+          value={region}
+          onChange={handleRegionChange}
+          className="w-full"
+        />
+      </div>
+    );
+  }
+
+  function CityBlock() {
+    return (
+      <div>
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          City
+        </label>
+        <Select
+          options={cityOptions}
+          value={city}
+          onChange={handleCityChange}
+          isDisabled={!region || region.value === 'UTC'}
+          className="w-full"
+        />
+      </div>
+    );
+  }
+
+  function TzShortcutBlock() {
+    return (
+      <div className="md:order-4 md:col-span-2 shortcuts">
+        {timezoneShortcuts.map((shortcut) => (
+          <button
+            key={shortcut.label}
+            onClick={() => handleTimezoneShortcut(shortcut)}
+            className="shortcut"
+          >
+            {shortcut.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  function TextFormatBlock() {
+    return (
+      <div className="md:order-3 md:col-span-2">
+        <label className="block text-gray-700 text-sm font-bold mb-2">
+          Text Format
+        </label>
+        <input
+          type="text"
+          value={textFormat}
+          onChange={handleTextFormatChange}
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
+    );
+  }
+
+  function TfShortcutBlock() {
+    return (
+      <div className="md:order-5 md:col-span-2 shortcuts">
+        <button
+          onClick={() => handleTextFormatShortcut('iso8601')}
+          className="shortcut"
+        >
+          ISO 8601
+        </button>
+        <button
+          onClick={() => handleTextFormatShortcut('local')}
+          className="shortcut"
+        >
+          Local
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="flex items-center space-x-2 text-3xl font-bold mb-6">
         <img className="h-8 w-auto inline-block mr-2" src="/clock-three-svgrepo-com.svg" alt="Clock Logo" />
         Unixtime
       </h1>
-
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Region
-            </label>
-            <Select
-              options={regionOptions}
-              value={region}
-              onChange={handleRegionChange}
-              className="w-full"
-            />
-            <div className="mt-2 flex space-x-2">
-              {timezoneShortcuts.map((shortcut) => (
-                <button
-                  key={shortcut.label}
-                  onClick={() => handleTimezoneShortcut(shortcut)}
-                  className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                >
-                  {shortcut.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              City
-            </label>
-            <Select
-              options={cityOptions}
-              value={city}
-              onChange={handleCityChange}
-              isDisabled={!region || region.value === 'UTC'}
-              className="w-full"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Text Format
-            </label>
-            <input
-              type="text"
-              value={textFormat}
-              onChange={handleTextFormatChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-            <div className="mt-2 flex space-x-2">
-              <button
-                onClick={() => handleTextFormatShortcut('iso8601')}
-                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              >
-                ISO 8601
-              </button>
-              <button
-                onClick={() => handleTextFormatShortcut('local')}
-                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              >
-                Local
-              </button>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <RegionBlock />
+          <CityBlock />
+          <TzShortcutBlock />
+          <TextFormatBlock />
+          <TfShortcutBlock />
         </div>
       </div>
 
@@ -242,16 +324,16 @@ const App = () => {
               onChange={(e) => setUnixtime(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
-            <div className="mt-2 flex space-x-2">
+            <div className="shortcuts">
               <button
                 onClick={() => handleUnixtimeShortcut('midnight')}
-                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="shortcut"
               >
                 Midnight
               </button>
               <button
                 onClick={() => handleUnixtimeShortcut('now')}
-                className="px-2 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="shortcut"
               >
                 Now
               </button>
